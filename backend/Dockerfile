@@ -2,8 +2,8 @@ FROM golang:1.21.3
 
 WORKDIR /app
 
-COPY backend/go.mod backend/go.sum ./
-COPY backend/*.go ./
+COPY go.mod go.sum ./
+COPY *.go ./
 
 RUN GOOS=linux GOARCH=amd64 go build -o golang-demo
 RUN chmod +x golang-demo
