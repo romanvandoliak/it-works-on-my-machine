@@ -1,0 +1,70 @@
+{
+  "id": null,
+  "uid": "golden-signals",
+  "title": "4 Golden Signals Dashboard",
+  "tags": ["golden-signals"],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "graph",
+      "title": "HTTP Request Rate test",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total[1m]))",
+          "legendFormat": "requests",
+          "interval": "",
+          "instant": false
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      },
+      "nullPointMode": "connected",
+      "fill": 1,
+      "linewidth": 2
+    },
+    {
+      "type": "graph",
+      "title": "HTTP Request Duration",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "95th percentile",
+          "interval": ""
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "type": "graph",
+      "title": "HTTP Error Rate",
+      "targets": [
+        {
+          "expr": "sum(rate(http_errors_total[1m]))",
+          "legendFormat": "errors",
+          "interval": ""
+        }
+      ],
+      "datasource": "Prometheus",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 24,
+        "h": 8
+      }
+    }
+  ]
+}

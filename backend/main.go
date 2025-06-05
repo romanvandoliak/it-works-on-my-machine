@@ -12,8 +12,41 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
+    "github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+var (
+	requestCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_requests_total",
+			Help: "Total number of http requests",
+		},
+		[]string{"method", "path", "status"},
+	)
+	requestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "http_request_duration_seconds",
+			Help:    "Duration of http requests in seconds",
+			Buckets: prometheus.DefBuckets,
+		},
+		[]string{"method", "path"},
+	)
+	errorCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "http_errors_total",
+			Help: "Total number of HTTP error responses",
+		},
+		[]string{"method", "path", "status"},
+	)
+)
+
+func initMetrics() {
+	prometheus.MustRegister(requestCounter)
+	prometheus.MustRegister(requestDuration)
+	prometheus.MustRegister(errorCounter)
+}
 
 func main() {
 	log.SetOutput(os.Stderr)
@@ -24,6 +57,10 @@ func main() {
 	if os.Getenv("MEMORY_LEAK_MAX_MEMORY") != "" {
 		go func() { memoryLeak(0, 0) }()
 	}
+
+	// Initialize Prometheus metrics. For course I use hardcoded prometheus.
+	//It's better to use some abstraction for it like open telemetry, but this is a demo.
+	initMetrics()
 
 	// Server
 	log.Println("Starting server...")
@@ -39,6 +76,28 @@ func main() {
     	}
     	c.Next()
     })
+	// Prometheus metrics middleware
+	router.Use(func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+		duration := time.Since(start).Seconds()
+
+		path := c.FullPath()
+		if path == "" {
+			path = c.Request.URL.Path
+		}
+		status := c.Writer.Status()
+
+		requestCounter.WithLabelValues(c.Request.Method, path, fmt.Sprintf("%d", status)).Inc()
+		requestDuration.WithLabelValues(c.Request.Method, path).Observe(duration)
+		if status >= 500 {
+			errorCounter.WithLabelValues(c.Request.Method, path, fmt.Sprintf("%d", status)).Inc()
+		}
+	})
+
+	// Metrics endpoint
+	router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
 	router.GET("/fibonacci", fibonacciHandler)
 	router.POST("/video", videoPostHandler)
 	router.GET("/videos", videosGetHandler)
