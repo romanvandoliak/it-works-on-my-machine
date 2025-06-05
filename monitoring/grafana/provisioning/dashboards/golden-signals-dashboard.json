@@ -28,7 +28,7 @@
       },
       "nullPointMode": "connected",
       "fill": 1,
-      "linewidth": 2,
+      "linewidth": 2
     },
     {
       "type": "graph",
