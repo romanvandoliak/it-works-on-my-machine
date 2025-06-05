@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: 'default'
+
+receivers:
+  - name: 'default'
+# Fake configuration for course study. Not sure even if it will work.
+    email_configs:
+      - to: 'some.test.cource@test.com'
+        from: 'course@amo.com'
+        smarthost: 'smtp.example.com:587'
+        auth_username: 'course@amo.com'
+        auth_password: '123456678q'

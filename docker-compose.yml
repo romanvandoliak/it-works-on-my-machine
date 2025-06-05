@@ -3,6 +3,7 @@ name: devops-course-amo
 include:
   - ./backend/docker-compose.yml
   - ./frontend/docker-compose.yml
+  - ./monitoring/docker-compose.yml
 
 networks:
   backend-network:
